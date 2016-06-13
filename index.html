@@ -23,6 +23,7 @@
 <ul>
 <li>Quel paradigme (Impératif, Fonctionel, Objet, Déclaratif, etc.) ?</li>
 <li>Quel public ?</li>
+<li>Quelle utilisation ?</li>
 <li class="fragment"><b><font color="red">Analysons la concurrence !</font></b></li>
 </ul>
 </section>
@@ -35,13 +36,13 @@
 <section>
 <h3>Langages généralistes / DSL</h3>
 <p>Est ce qu'un nouveau langage généraliste est vraiment utile ?</p>
-<p>Il existe par contre de nombreux domaine où un langage spécifique (DSL) serait judicieux</p>
+<p>Il existe par contre de nombreux domaines où un langage spécifique (DSL) serait judicieux</p>
 </section>
 
 <section>
 <h3>Le métier du plombier</h3>
 <ul>
-<li>Vocabulaire: Valve, Filtre, Pompe, etc.</li>
+<li>Vocabulaire : Valve, Filtre, Pompe, etc.</li>
 <li>Objectif : décrire et analyser des réseaux hydrauliques</li>
 </ul>
 <img src="images/plumbing.gif">
@@ -52,8 +53,10 @@
 <pre>
 main:<font color="brown">inlet</font> -&gt; <font color="brown">valve</font> -&gt; f1:<font color="brown">filter</font> { <font color="green">transfert</font>: x^2 + 1 }
 
-f1 -&gt; <font color="brown">pump</font> { <font color="green">power</font>: 500W, <font color="green">pressure</font>: 1 bar } -&gt; <font color="brown">heater</font> { <font color="green">power</font>: 2kW }
-   -&gt; acc:<font color="brown">accumulator</font> -&gt; o1:<font color="brown">outlet</font>
+f1 -&gt; <font color="brown">pump</font> { <font color="green">power</font>: 500W, <font color="green">pressure</font>: 1 bar }
+   -&gt; <font color="brown">heater</font> { <font color="green">power</font>: 2kW }
+   -&gt; acc:<font color="brown">accumulator</font>
+   -&gt; o1:<font color="brown">outlet</font>
 
 f1 -&gt; v1:<font color="brown">valve</font> -&gt; o2:<font color="brown">outlet</font>
 
@@ -111,7 +114,7 @@ Exception in thread "main" org.plumber.parser.ParseException: Parse Error
 
 <section>
 <h3>Le langage et son écosystème</h3>
-<p>Le langage doit être associés à des outils qui fournissent:</p>
+<p>Le langage, afin d'être exploitable par le plus grand nombre, doit être associé à des outils qui fournissent:</p>
 <ul>
 <li>Indication des erreurs</li>
 <li>Aide à la résolution des erreurs</li>
@@ -146,7 +149,11 @@ on peut donc profiter de l'outillage associé à ce langage hôte.</p>
 </section>
 
 <section>
-<h3>Règle de construction</h3>
+<h3>Règles de construction</h3>
+<ul>
+<li>Grammaire d'entrée admissible</li>
+<li>Grosso modo équivalent à LL(1)</li>
+</ul>
 <img src="images/base-grammar.png">
 </section>
 
@@ -154,7 +161,6 @@ on peut donc profiter de l'outillage associé à ce langage hôte.</p>
 <ul>
 <li>Chaque interface est un état</li>
 <li>Chaque méthode (mot clé) fait changer d'état</li>
-<li>Grosso modo équivalent à LL(1)</li>
 </ul>
 <pre><code data-trim style="max-height: 500px">
 interface Start {
@@ -185,7 +191,19 @@ interface Intermediate3 extends End {
 <ul>
 <li>Network <font color="cyan">::=</font> Statement<font color="brown">+</font></li>
 <li>Statement <font color="cyan">::=</font> Element ( <font color="purple">"-&gt;"</font> Element )<font color="brown">+</font></li>
-<li>Element <font color="cyan">::=</font> IDENT <font color="brown">|</font> ElementName <font color="brown">(</font>IDENT <font color="purple">":"</font><font color="brown">)?</font> <font color="brown">(</font><font color="purple">"{"</font> ... <font color="purple">"}"</font><font color="brown">)?</font></li>
+<li>Element <font color="cyan">::=</font> IDENT<br>
+    <font color="brown">|</font> <font color="brown">(</font>IDENT <font color="purple">":"</font><font color="brown">)?</font> ElementName <font color="brown">(</font><font color="purple">"{"</font> ... <font color="purple">"}"</font><font color="brown">)?</font></li>
+<li>ElementName <font color="cyan">::=</font> <font color="purple">"pump"</font> <font color="brown">|</font> <font color="purple">"filter"</font> <font color="brown">|</font> ...</li>
+</ul>
+</section>
+
+<section>
+<h3>Exemple avec le langage du plombier transformé</h3>
+<ul>
+<li>Network <font color="cyan">::=</font> Statement<font color="brown">+</font></li>
+<li>Statement <font color="cyan">::=</font> Element ( <font color="purple">"-&gt;"</font> Element )<font color="brown">+</font></li>
+<li>Element <font color="cyan">::=</font> <font color="purple">"ref"</font> IDENT<br>
+     <font color="brown">|</font> ElementName <font color="brown">(</font><font color="purple">":"</font> IDENT<font color="brown">)?</font> <font color="brown">(</font><font color="purple">"{"</font> ... <font color="purple">"}"</font><font color="brown">)?</font></li>
 <li>ElementName <font color="cyan">::=</font> <font color="purple">"pump"</font> <font color="brown">|</font> <font color="purple">"filter"</font> <font color="brown">|</font> ...</li>
 </ul>
 </section>
@@ -215,10 +233,10 @@ builder()
 
 <section>
 <h3>Conclusion</h3>
-<p>Pour créer son propre langage:</p>
+<p>Pour créer son propre langage :</p>
 <ul>
-<li>Démarrer avec un prototype de DSL interne</li>
-<li>Embrayer sur DSL externe <font color="red">user friendly</font></li>
+<li>Démarrer rapidement avec un DSL interne</li>
+<li>Embrayer sur un DSL externe <font color="red">user friendly</font></li>
 <li>Booster votre DSL externe en l'intégrant à votre IDE</li>
 <li>Et enfin on obtient...</li>
 </ul>
@@ -226,6 +244,7 @@ builder()
 
 <section>
 <img src="images/evil-dominer.jpg">
+<p>Des questions ?</p>
 </section>
 
             </div>
@@ -239,7 +258,9 @@ builder()
             Reveal.initialize({
 				transition: 'none',
 				dependencies: [
-{ src: 'bower_components/reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+{ src: 'bower_components/reveal.js/plugin/highlight/highlight.js', async: true, callback: function() {
+	hljs.initHighlightingOnLoad();
+} },
 				]
 			});
         </script>
